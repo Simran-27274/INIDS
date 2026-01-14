@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routes import api
+from app.routes.predict import router as predict_router
 
 app = FastAPI(
     title="Intelligent Network Intrusion Detection System",
@@ -7,7 +7,7 @@ app = FastAPI(
 )
 
 # Include routes
-app.include_router(api.router)
+app.include_router(predict_router)
 
 @app.get("/")
 def root():
