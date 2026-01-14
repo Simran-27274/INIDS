@@ -1,0 +1,1 @@
+DATABASE_URL = "postgresql://postgres:27Simran@localhost:5432/inids_db"
