@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models.alert import Alert
 
@@ -7,12 +8,30 @@ router = APIRouter(
     tags=["Alerts"]
 )
 
-@router.get("/")
-def get_alerts():
+# Dependency to get DB session
+def get_db():
     db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-    alerts = db.query(Alert).order_by(Alert.id.desc()).all()
+@router.get("/")
+def get_alerts(db: Session = Depends(get_db)):
+    """
+    Fetch all alerts from DB
+    """
+    alerts = db.query(Alert).all()
 
-    db.close()
+    # Convert ORM objects to dict
+    result = []
+    for a in alerts:
+        result.append({
+            "id": a.id,
+            "traffic_id": a.traffic_id,
+            "attack_type": a.attack_type,
+            "risk_score": a.risk_score,
+            "severity": a.severity
+        })
 
-    return alerts
+    return {"alerts": result}
