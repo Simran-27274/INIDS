@@ -43,32 +43,28 @@ FEATURE_ORDER = [
     'Active Mean', 'Active Std', 'Active Max', 'Active Min', 'Idle Mean',
     'Idle Std', 'Idle Max', 'Idle Min'
 ]
+#missing features will be filled with 0
+def prepare_features(input_data: dict):
+    """
+    Ensures all required features are present.
+    Missing features are filled with 0.
+    """
+    feature_values = []
+
+    for feature in FEATURE_ORDER:
+        value = input_data.get(feature, 0)
+        feature_values.append(value)
+
+    return feature_values
 
 # -------------------------
 # Prediction function
 # -------------------------
-def predict(data: dict):
-    """
-    Input: JSON dict from /predict API
-    Output: "attack" or "normal"
-    """
-    try:
-        # 1️⃣ Extract values in correct order
-        X = np.array([data[feature] for feature in FEATURE_ORDER]).reshape(1, -1)
+def predict(input_data: dict):
+    features = prepare_features(input_data)
 
-        # 2️⃣ Encode categorical features (if any)
-        # encoder.transform expects 2D array, apply only if needed
-        # X_encoded = encoder.transform(X_categorical)
-        # merge numeric + encoded features
-        # Here assuming all features numeric, skip encoder step if unnecessary
+    scaled = scaler.transform([features])
+    prediction = model.predict(scaled)[0]
+    prediction=int(prediction)
 
-        # 3️⃣ Scale
-        X_scaled = scaler.transform(X)
-
-        # 4️⃣ Predict
-        pred = model.predict(X_scaled)[0]
-
-        return "attack" if pred == 1 else "normal"
-
-    except KeyError as e:
-        raise ValueError(f"Missing feature in input JSON: {e}")
+    return prediction
